@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>AIトレーニングコーチ</title>
+<style>
+  :root { --bg:#0f1115; --panel:#1a1d24; --text:#eef1f5; --muted:#9aa3af; --accent:#7CFFB2; --warn:#ffb86b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:-apple-system,"Hiragino Sans",sans-serif;
+         padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; }
+  header h1 { font-size:17px; margin:0; }
+  header button { background:none; border:none; color:var(--text); font-size:22px; }
+  #stage { position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow:hidden; }
+  #stage video, #stage canvas { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+  #stage.mirror video, #stage.mirror canvas { transform:scaleX(-1); }
+  #hud { position:absolute; top:8px; left:8px; right:8px; display:flex; gap:8px; pointer-events:none; }
+  .chip { background:rgba(0,0,0,.6); border-radius:10px; padding:6px 10px; font-size:13px; color:var(--muted); }
+  .chip b { display:block; font-size:22px; color:var(--text); }
+  #status { position:absolute; bottom:8px; left:8px; }
+  .controls { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px 14px; }
+  .controls button { padding:14px; font-size:16px; border-radius:12px; border:none; background:var(--panel); color:var(--text); }
+  .controls button.primary { background:var(--accent); color:#06301a; font-weight:700; grid-column:1/-1; }
+  .controls button.on { outline:3px solid var(--accent); }
+  .controls button:disabled { opacity:.4; }
+  .row { display:flex; align-items:center; justify-content:space-between; padding:0 14px; color:var(--muted); font-size:14px; }
+  #log { padding:8px 14px 40px; display:flex; flex-direction:column; gap:8px; }
+  .msg { padding:10px 12px; border-radius:12px; background:var(--panel); white-space:pre-wrap; font-size:14px; line-height:1.5; }
+  .msg.coach { border-left:4px solid var(--accent); }
+  .msg.user { background:#243046; align-self:flex-end; }
+  .msg.sys { color:var(--muted); }
+  dialog { background:var(--panel); color:var(--text); border:none; border-radius:14px; width:min(92vw,420px); }
+  dialog label { display:block; font-size:13px; color:var(--muted); margin:12px 0 4px; }
+  dialog input { width:100%; padding:10px; border-radius:8px; border:1px solid #333; background:#0f1115; color:var(--text); font-size:16px; }
+  dialog small { color:var(--muted); }
+  dialog menu { display:flex; justify-content:flex-end; gap:8px; padding:0; margin:16px 0 0; }
+  dialog menu button { padding:10px 16px; border-radius:8px; border:none; font-size:15px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AIトレーニングコーチ <small style="color:var(--muted)">スクワット</small></h1>
+  <div><button id="flipBtn" aria-label="カメラ切替">🔄</button><button id="settingsBtn" aria-label="設定">⚙</button></div>
+</header>
+
+<div id="stage">
+  <video id="video" playsinline muted autoplay></video>
+  <canvas id="overlay"></canvas>
+  <div id="hud">
+    <div class="chip">回数<b id="reps">0</b></div>
+    <div class="chip">膝の角度<b id="knee">—</b></div>
+    <div class="chip">前傾<b id="lean">—</b></div>
+  </div>
+  <div id="status" class="chip">タップして開始</div>
+</div>
+
+<div class="controls">
+  <button id="startBtn" class="primary">カメラとコーチを起動</button>
+  <button id="setBtn" disabled>セット開始</button>
+  <button id="talkBtn" disabled>🎤 話しかける</button>
+</div>
+<div class="row">
+  <span>ハンズフリー(常に聞き取る)</span>
+  <input type="checkbox" id="handsFree" checked>
+</div>
+
+<div id="log"></div>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h3 style="margin-top:0">設定</h3>
+    <label for="apiKey">Gemini APIキー</label>
+    <input id="apiKey" type="password" autocomplete="off" placeholder="AIza...">
+    <small>このiPhoneのブラウザ内にだけ保存されます。</small>
+    <label for="model">モデル名</label>
+    <input id="model" placeholder="gemini-2.5-flash">
+    <label for="depth">深さの基準(膝の角度、小さいほど深い)</label>
+    <input id="depth" type="number" min="60" max="140" step="5">
+    <menu>
+      <button value="cancel">閉じる</button>
+      <button id="saveSettings" value="ok" style="background:var(--accent);color:#06301a">保存</button>
+    </menu>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
